@@ -1,0 +1,11 @@
+{application, ini2file, [
+    {description, "Generate files by .ini."},
+    {vsn, "1.0.0"},
+    {registered, []},
+    {applications, [kernel, stdlib]},
+    {env, []},
+    {modules, []},
+    {maintainers, []},
+    {licenses, []},
+    {links, []}
+]}.
