@@ -6,6 +6,7 @@
     file_path/5,
     file_name/3,
     file_full_name/2,
+    is_string/1,
     plugin_params_list/5
 ]).
 
@@ -32,7 +33,28 @@ file_name(IniName, SessionName, NameList) ->
 
 %% @doc 文件完整名字(带后缀)
 file_full_name(FileName, Suffix) ->
-    FileName ++ Suffix.
+    case Suffix of
+        [$. | _Tail] ->
+            FileName ++ Suffix;
+        [_ | _] ->
+            FileName ++ "." ++ Suffix;
+        <<$., _Tail/binary>> ->
+            FileName ++ bitstring_to_list(Suffix);
+        <<_/binary>> ->
+            FileName ++ "." ++ bitstring_to_list(Suffix)
+    end.
+
+%% @doc 是否 string
+is_string(List) when is_list(List) ->
+    all_integer_ascii(List);
+is_string(_Term) ->
+    false.
+
+%% @doc 列表内是否都是数字且在 ASCII 范围内
+all_integer_ascii([]) -> true;
+all_integer_ascii([H | T]) when is_integer(H), H >= 32, H =< 126 ->
+    all_integer_ascii(T);
+all_integer_ascii(_) -> false.
 
 %% @doc 插件自带参数列表
 plugin_params_list(IniName, SessionName, FileName, FileFullName, FilePath) ->

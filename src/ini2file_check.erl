@@ -124,7 +124,7 @@ check_file_name(TmplName, FileCfg) ->
 check_suffix(TmplName, FileCfg) ->
     case lists:keyfind(?I2F_KEY_SUFFIX, 1, FileCfg) of
         {?I2F_KEY_SUFFIX, Suffix} ->
-            IsString = is_string(Suffix),
+            IsString = ini2file_util:is_string(Suffix),
             Regex = "^[a-zA-Z0-9.]+$",
             if
                 IsString ->
@@ -154,7 +154,7 @@ check_suffix(TmplName, FileCfg) ->
 
 %% @doc 校验路径
 check_path(CfgName, Path, Type) ->
-    IsString = is_string(Path),
+    IsString = ini2file_util:is_string(Path),
     Regex = "^[a-zA-Z0-9_./-]*$",
     if
         IsString ->
@@ -200,7 +200,7 @@ check_tmpl_path(CfgName, Cfg) ->
 
 %% @doc 名字单词是否合法 atom | integer | string | bitstring
 is_name_word_legal(TmplName, Word) ->
-    IsString = is_string(Word),
+    IsString = ini2file_util:is_string(Word),
     Regex = "^[a-zA-Z0-9_.-]+$",
     if
         IsString ->
@@ -227,18 +227,6 @@ is_name_word_legal(TmplName, Word) ->
             rebar_api:error("Ini2file template: ~p -> name words must be of types: atom | integer | string | bitstring.", [TmplName]),
             false
     end.
-
-%% @doc 是否 string
-is_string(List) when is_list(List) ->
-    all_integer_ascii(List);
-is_string(_Term) ->
-    false.
-
-%% @doc 列表内是否都是数字且在 ASCII 范围内
-all_integer_ascii([]) -> true;
-all_integer_ascii([H | T]) when is_integer(H), H >= 32, H =< 126 ->
-    all_integer_ascii(T);
-all_integer_ascii(_) -> false.
 
 %% @doc 循环多个校验
 loop_check([]) -> true;
