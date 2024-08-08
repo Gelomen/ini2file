@@ -5,6 +5,7 @@
     file_path/2,
     file_path/5,
     file_name/3,
+    file_full_name/2,
     plugin_params_list/5
 ]).
 

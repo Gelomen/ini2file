@@ -43,6 +43,7 @@ clean(State) ->
     Opts = rebar_state:opts(State),
     case dict:find(?NAMESPACE, Opts) of
         {ok, Ini2fileOpts} ->
+            rebar_api:debug("Ini2file get opts: ~p.", [Ini2fileOpts]),
             % ini 配置
             IniCfg = proplists:get_value(?I2F_TYPE_INI, Ini2fileOpts, ?I2F_DEFAULT_INI),
             % templates 配置
@@ -55,6 +56,7 @@ clean(State) ->
                     error
             end;
         _ ->
+            rebar_api:debug("Ini2file can't get opts.", []),
             skip
     end.
 
@@ -99,7 +101,7 @@ clean([Term | _IniCfg], _TemplatesCfg) ->
 clean_by_cfg(_IniName, _IniContent, [], _TemplatesCfg) ->
     ok;
 clean_by_cfg(IniName, IniContent, [TmplName | TmplNameList], TemplatesCfg) ->
-    case proplists:get_value(TmplName, TemplatesCfg) of
+    case lists:keyfind(TmplName, 1, TemplatesCfg) of
         {TmplName, Template} ->
             % 读取 文件名字 规则
             FileCfg = proplists:get_value(?I2F_KEY_FILE, Template),

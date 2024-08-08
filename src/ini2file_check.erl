@@ -13,16 +13,20 @@
 
 %% @doc 配置校验
 check(IniCfg, TemplatesCfg) ->
-    ini_check(IniCfg, TemplatesCfg) andalso templates_check(TemplatesCfg).
+    IniCheck = ini_check(IniCfg, TemplatesCfg),
+    TmplCheck = templates_check(TemplatesCfg),
+    rebar_api:debug("Ini2file IniCheck: ~p, TmplCheck: ~p.", [IniCheck, TmplCheck]),
+    IniCheck andalso TmplCheck.
 
 %% @doc ini 配置校验
 ini_check(IniCfg, TemplatesCfg) when is_list(IniCfg) ->
+    rebar_api:debug("Ini2file check func: ~p, IniCfg: ~p, TemplatesCfg: ~p.", [?FUNCTION_NAME, IniCfg, TemplatesCfg]),
     lists:all(
         fun({IniName, IniPath, TmplNameList}) when is_list(TmplNameList) ->
             CheckList = [
-                {fun check_cfg_name/2, [IniName, ?I2F_TYPE_INI]},
-                {fun check_path/3, [IniName, IniPath, ?I2F_TYPE_INI]},
-                {fun check_tmpl_name/3, [IniName, TmplNameList, TemplatesCfg]}
+                {fun check_cfg_name/2, [IniName, ?I2F_TYPE_INI], check_cfg_name},
+                {fun check_path/3, [IniName, IniPath, ?I2F_TYPE_INI], check_path},
+                {fun check_tmpl_name/3, [IniName, TmplNameList, TemplatesCfg], check_tmpl_name}
             ],
             loop_check(CheckList);
             ({IniName, _IniPath, TmplNameList}) ->
@@ -38,12 +42,13 @@ ini_check(_IniCfg, _TemplatesCfg) ->
 
 %% @doc 模板配置校验
 templates_check(TemplatesCfg) when is_list(TemplatesCfg) ->
+    rebar_api:debug("Ini2file check func: ~p, TemplatesCfg: ~p.", [?FUNCTION_NAME, TemplatesCfg]),
     lists:all(
         fun({TmplName, TemplateCfg}) when is_list(TemplateCfg) ->
             CheckList = [
-                {fun check_cfg_name/2, [TmplName, ?I2F_TYPE_TEMPLATES]},
-                {fun check_file/2, [TmplName, TemplateCfg]},
-                {fun check_tmpl_path/2, [TmplName, TemplateCfg]}
+                {fun check_cfg_name/2, [TmplName, ?I2F_TYPE_TEMPLATES], check_cfg_name},
+                {fun check_file/2, [TmplName, TemplateCfg], check_file},
+                {fun check_tmpl_path/2, [TmplName, TemplateCfg], check_tmpl_path}
             ],
             loop_check(CheckList);
             ({TmplName, TemplateCfg}) ->
@@ -81,9 +86,9 @@ check_file(TmplName, TemplateCfg) ->
     case lists:keyfind(?I2F_KEY_FILE, 1, TemplateCfg) of
         {?I2F_KEY_FILE, FileCfg} when is_list(FileCfg) ->
             CheckList = [
-                {fun check_file_name/2, [TmplName, FileCfg]},
-                {fun check_suffix/2, [TmplName, FileCfg]},
-                {fun check_save_path/2, [TmplName, FileCfg]}
+                {fun check_file_name/2, [TmplName, FileCfg], check_file_name},
+                {fun check_suffix/2, [TmplName, FileCfg], check_suffix},
+                {fun check_save_path/2, [TmplName, FileCfg], check_save_path}
             ],
             loop_check(CheckList);
         {?I2F_KEY_FILE, FileCfg} ->
@@ -104,7 +109,7 @@ check_file_name(TmplName, FileCfg) ->
                     rebar_api:error("Ini2file template: ~p -> name config is empty.", [TmplName]),
                     false;
                 _ ->
-                    CheckList = [{fun is_name_word_legal/2, [TmplName, Word]} || Word <- NameList],
+                    CheckList = [{fun is_name_word_legal/2, [TmplName, Word], is_name_word_legal} || Word <- NameList],
                     loop_check(CheckList)
             end;
         {?I2F_KEY_NAME, NameList} ->
@@ -127,7 +132,7 @@ check_suffix(TmplName, FileCfg) ->
                         {match, _} ->
                             true;
                         _ ->
-                            rebar_api:error("Ini2file template: ~p -> ~p: ~p is a illegal suffix.", [TmplName, ?I2F_KEY_SUFFIX, Suffix]),
+                            rebar_api:error("Ini2file template: ~p -> ~p: ~p is illegal.", [TmplName, ?I2F_KEY_SUFFIX, Suffix]),
                             false
                     end;
                 is_bitstring(Suffix) ->
@@ -135,7 +140,7 @@ check_suffix(TmplName, FileCfg) ->
                         {match, _} ->
                             true;
                         _ ->
-                            rebar_api:error("Ini2file template: ~p -> ~p: ~p is a illegal suffix.", [TmplName, ?I2F_KEY_SUFFIX, Suffix]),
+                            rebar_api:error("Ini2file template: ~p -> ~p: ~p is illegal.", [TmplName, ?I2F_KEY_SUFFIX, Suffix]),
                             false
                     end;
                 true ->
@@ -225,7 +230,9 @@ is_name_word_legal(TmplName, Word) ->
 
 %% @doc 是否 string
 is_string(List) when is_list(List) ->
-    all_integer_ascii(List).
+    all_integer_ascii(List);
+is_string(_Term) ->
+    false.
 
 %% @doc 列表内是否都是数字且在 ASCII 范围内
 all_integer_ascii([]) -> true;
@@ -235,8 +242,15 @@ all_integer_ascii(_) -> false.
 
 %% @doc 循环多个校验
 loop_check([]) -> true;
-loop_check([{Func, Args} | CheckList]) ->
+loop_check([{Func, Args, FuncName} | CheckList]) ->
     case catch apply(Func, Args) of
-        true -> loop_check(CheckList);
-        _ -> false
+        true ->
+            rebar_api:debug("Ini2file func: ~p, args: ~p check success.", [FuncName, Args]),
+            loop_check(CheckList);
+        false ->
+            rebar_api:debug("Ini2file func: ~p, args: ~p check fail.", [FuncName, Args]),
+            false;
+        Error ->
+            rebar_api:error("Ini2file check error: ~p.", [Error]),
+            false
     end.
