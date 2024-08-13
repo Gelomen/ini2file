@@ -68,8 +68,8 @@ generate([{IniName, IniPath, TmplNameList} | IniCfg], TemplatesCfg) ->
         {ok, IniContent} = zucchini:parse_file(IniPath),
         % 读取公共参数列表
         {CommonParams, NewIniContent} =
-            case lists:keytake(?I2F_INI_COMMON_SESSION_KEY, 1, IniContent) of
-                {value, {?I2F_INI_COMMON_SESSION_KEY, TempCommonParams}, OthersIniContent} ->
+            case lists:keytake(?I2F_INI_SESSION_COMMON_KEY, 1, IniContent) of
+                {value, {?I2F_INI_SESSION_COMMON_KEY, TempCommonParams}, OthersIniContent} ->
                     {TempCommonParams, OthersIniContent};
                 _ ->
                     {[], IniContent}
@@ -111,12 +111,11 @@ gen_by_cfg(_IniName, _CommonParams, _IniContent, [], _TemplatesCfg) ->
 gen_by_cfg(IniName, CommonParams, IniContent, [TmplName | TmplNameList], TemplatesCfg) ->
     case lists:keyfind(TmplName, 1, TemplatesCfg) of
         {TmplName, Template} ->
-            % 读取 文件名字 规则
-            FileCfg = proplists:get_value(?I2F_KEY_FILE, Template),
-            NameList = proplists:get_value(?I2F_KEY_NAME, FileCfg),
-            Suffix = proplists:get_value(?I2F_KEY_SUFFIX, FileCfg),
-            Path = proplists:get_value(?I2F_KEY_SAVE_PATH, FileCfg),
-            % 读取 .tmpl 文件路径
+            % 读取 生成文件名字和路径 配置
+            NameList = proplists:get_value(?I2F_KEY_NAME, Template),
+            Suffix = proplists:get_value(?I2F_KEY_SUFFIX, Template),
+            Path = proplists:get_value(?I2F_KEY_SAVE_PATH, Template),
+            % 读取 .tmpl 配置
             TmplPath = proplists:get_value(?I2F_KEY_TMPL_PATH, Template),
             gen_file(IniName, NameList, Suffix, Path, TmplPath, CommonParams, IniContent),
             gen_by_cfg(IniName, CommonParams, IniContent, TmplNameList, TemplatesCfg);

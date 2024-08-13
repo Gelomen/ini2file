@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Read `.ini` config and `.tmpl` templates to batch generate files, with each `session` in the `.ini` corresponding to one file (except `i2f_common_session`).
+Read `.ini` config and `template` to batch generate files, with each `session` in the `.ini` corresponding to one file (except `i2f_common`).
 
 ## Usage
 
@@ -55,7 +55,7 @@ Read the fields of the `.ini` config and replace the contents of the template, s
 Path: `ini/my_config.ini`
 
 ```ini
-[i2f_common_session]
+[i2f_common]
 domain = 127.0.0.1
 
 [foo]
@@ -66,12 +66,12 @@ port = 9090
 
 ```
 
-> A `session` can be configured with the same parameters as `[i2f_common_session]` to override the common config without affecting other `sessions`.
+> A `session` can be configured with the same parameters as `[i2f_common]` to override the common config without affecting other `sessions`.
 
 Example::
 
 ```ini
-[i2f_common_session]
+[i2f_common]
 domain = 127.0.0.1
 
 [foo]
@@ -119,11 +119,9 @@ host() ->
     {templates, [
         {erl, [
             % File name, the following config will result in: `src/my_foo_xxx.erl` and `src/my_bar_xxx.erl`
-            {file, [
-                {name, [i2f_ini_name, i2f_session_name, "xxx"]},    % Words to concat for the file name, atom | int | string | bit_string
-                {suffix, ".erl"},                                   % File suffix
-                {save_path, "src"}                                  % File save path
-            ]},
+            {name, [i2f_ini_name, i2f_session_name, "xxx"]},        % Words to concat for the file name, atom | int | string | bit_string
+            {suffix, ".erl"},                                       % File suffix
+            {save_path, "src"},                                     % File save path
             {tmpl_path, "templates/erl.tmpl"}                       % Template path
         ]}
     ]}

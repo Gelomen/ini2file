@@ -47,7 +47,9 @@ templates_check(TemplatesCfg) when is_list(TemplatesCfg) ->
         fun({TmplName, TemplateCfg}) when is_list(TemplateCfg) ->
             CheckList = [
                 {fun check_cfg_name/2, [TmplName, ?I2F_TYPE_TEMPLATES], check_cfg_name},
-                {fun check_file/2, [TmplName, TemplateCfg], check_file},
+                {fun check_file_name/2, [TmplName, TemplateCfg], check_file_name},
+                {fun check_suffix/2, [TmplName, TemplateCfg], check_suffix},
+                {fun check_save_path/2, [TmplName, TemplateCfg], check_save_path},
                 {fun check_tmpl_path/2, [TmplName, TemplateCfg], check_tmpl_path}
             ],
             loop_check(CheckList);
@@ -81,27 +83,9 @@ check_tmpl_name(IniName, [TmplName | TmplNameList], TemplatesCfg) ->
             false
     end.
 
-%% @doc 校验文件配置
-check_file(TmplName, TemplateCfg) ->
-    case lists:keyfind(?I2F_KEY_FILE, 1, TemplateCfg) of
-        {?I2F_KEY_FILE, FileCfg} when is_list(FileCfg) ->
-            CheckList = [
-                {fun check_file_name/2, [TmplName, FileCfg], check_file_name},
-                {fun check_suffix/2, [TmplName, FileCfg], check_suffix},
-                {fun check_save_path/2, [TmplName, FileCfg], check_save_path}
-            ],
-            loop_check(CheckList);
-        {?I2F_KEY_FILE, FileCfg} ->
-            rebar_api:error("Ini2file template: ~p -> ~p must be of type list.", [TmplName, FileCfg]),
-            false;
-        _ ->
-            rebar_api:error("Ini2file can't find template: ~p file config.", [TmplName]),
-            false
-    end.
-
 %% @doc 校验文件名字
-check_file_name(TmplName, FileCfg) ->
-    case lists:keyfind(?I2F_KEY_NAME, 1, FileCfg) of
+check_file_name(TmplName, TemplateCfg) ->
+    case lists:keyfind(?I2F_KEY_NAME, 1, TemplateCfg) of
         {?I2F_KEY_NAME, NameList} when is_list(NameList) ->
             % 名字列表是否 为空 或者 里面的单词是否为 空字符串 或 带空格字符串
             case NameList == [] of
@@ -121,8 +105,8 @@ check_file_name(TmplName, FileCfg) ->
     end.
 
 %% @doc 校验后缀
-check_suffix(TmplName, FileCfg) ->
-    case lists:keyfind(?I2F_KEY_SUFFIX, 1, FileCfg) of
+check_suffix(TmplName, TemplateCfg) ->
+    case lists:keyfind(?I2F_KEY_SUFFIX, 1, TemplateCfg) of
         {?I2F_KEY_SUFFIX, Suffix} ->
             IsString = ini2file_util:is_string(Suffix),
             Regex = "^[a-zA-Z0-9.]+$",
@@ -179,8 +163,8 @@ check_path(CfgName, Path, Type) ->
     end.
 
 %% @doc 校验保存路径
-check_save_path(CfgName, Cfg) ->
-    case lists:keyfind(?I2F_KEY_SAVE_PATH, 1, Cfg) of
+check_save_path(CfgName, TemplateCfg) ->
+    case lists:keyfind(?I2F_KEY_SAVE_PATH, 1, TemplateCfg) of
         {?I2F_KEY_SAVE_PATH, Path} ->
             check_path(CfgName, Path, ?I2F_TYPE_TEMPLATES);
         _ ->
