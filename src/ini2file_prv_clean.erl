@@ -104,10 +104,9 @@ clean_by_cfg(IniName, IniContent, [TmplName | TmplNameList], TemplatesCfg) ->
     case lists:keyfind(TmplName, 1, TemplatesCfg) of
         {TmplName, Template} ->
             % 读取 文件名字 规则
-            FileCfg = proplists:get_value(?I2F_KEY_FILE, Template),
-            NameList = proplists:get_value(?I2F_KEY_NAME, FileCfg),
-            Suffix = proplists:get_value(?I2F_KEY_SUFFIX, FileCfg),
-            Path = proplists:get_value(?I2F_KEY_SAVE_PATH, FileCfg),
+            NameList = proplists:get_value(?I2F_KEY_NAME, Template),
+            Suffix = proplists:get_value(?I2F_KEY_SUFFIX, Template),
+            Path = proplists:get_value(?I2F_KEY_SAVE_PATH, Template),
             clean_file(IniName, NameList, Suffix, Path, IniContent),
             clean_by_cfg(IniName, IniContent, TmplNameList, TemplatesCfg);
         _ ->

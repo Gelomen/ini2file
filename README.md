@@ -4,7 +4,7 @@
 
 ## 简介
 
-读取 `.ini` 配置和 `.tmpl` 模板批量生成文件, `.ini` 中每个 `session` 对应一个文件(`i2f_common_session` 除外)
+读取 `.ini` 配置和 `template` 模板批量生成文件, `.ini` 中每个 `session` 对应一个文件(`i2f_common` 除外)
 
 ## 使用
 
@@ -55,7 +55,7 @@ rebar3 compile
 路径: `ini/my_config.ini`
 
 ```ini
-[i2f_common_session]
+[i2f_common]
 domain = 127.0.0.1
 
 [foo]
@@ -66,12 +66,12 @@ port = 9090
 
 ```
 
-> `session` 可以配置与 `[i2f_common_session]` 相同的参数以覆盖公共配置, 且不会影响其他 `session`
+> `session` 可以配置与 `[i2f_common]` 相同的参数以覆盖公共配置, 且不会影响其他 `session`
 
 如:
 
 ```ini
-[i2f_common_session]
+[i2f_common]
 domain = 127.0.0.1
 
 [foo]
@@ -119,11 +119,9 @@ host() ->
     {templates, [
         {erl, [
             % 文件名字, 如下配置将得到: `src/my_foo_xxx.erl` 和 `src/my_bar_xxx.erl`
-            {file, [
-                {name, [i2f_ini_name, i2f_session_name, "xxx"]},    % 要拼接文件名字的单词, atom | int | string | bit_string
-                {suffix, ".erl"},                                   % 文件后缀
-                {save_path, "src"}                                  % 文件保存目录
-            ]},
+            {name, [i2f_ini_name, i2f_session_name, "xxx"]},        % 要拼接文件名字的单词, atom | int | string | bit_string
+            {suffix, ".erl"},                                       % 文件后缀
+            {save_path, "src"},                                     % 文件保存路径
             {tmpl_path, "templates/erl.tmpl"}                       % 模板路径
         ]}
     ]}

@@ -1,15 +1,11 @@
 -ifndef(INI2FILE_H).
 -define(INI2FILE_H, true).
 
-%% @doc .ini 公共 session key
--define(I2F_INI_COMMON_SESSION_KEY, i2f_common_session).
-
 %% @doc rebar.config 的 ini2file 配置类型
 -define(I2F_TYPE_INI, ini).
 -define(I2F_TYPE_TEMPLATES, templates).
 
 %% @doc rebar.config 的 ini2file 配置下的 key
--define(I2F_KEY_FILE, file).
 -define(I2F_KEY_NAME, name).
 -define(I2F_KEY_SUFFIX, suffix).
 -define(I2F_KEY_SAVE_PATH, save_path).
@@ -21,6 +17,9 @@
 
 %% @doc 分隔符
 -define(I2F_DELIMITER, "_").
+
+%% @doc .ini session 公共 key
+-define(I2F_INI_SESSION_COMMON_KEY, i2f_common).
 
 %% @doc 插件自带参数 key
 -define(I2F_PARAM_KEY_INI_NAME, i2f_ini_name).
